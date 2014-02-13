@@ -921,8 +921,17 @@ bool klondike_lowl_probe(const struct lowlevel_device_info * const info)
 	if (unlikely(!klninfo))
 		quit(1, "Failed to calloc klninfo in klondke_detect_one");
 	klninfo->clock = 282;
-	klninfo->max_work_count = 4;
-	klninfo->old_work_ms = 5000;
+	if (info->vid == 0xfa05)
+	{
+		// HashBuster
+		klninfo->max_work_count = 0x20;
+		klninfo->old_work_ms = 30000;
+	}
+	else
+	{
+		klninfo->max_work_count = 4;
+		klninfo->old_work_ms = 5000;
+	}
 	klncgpu->device_data = (void *)klninfo;
 
 	klninfo->free = new_klist_set(klncgpu);
