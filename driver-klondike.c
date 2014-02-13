@@ -32,6 +32,23 @@
 #include "lowl-usb.h"
 #include "miner.h"
 
+struct vidpid {
+	uint16_t vid;
+	uint16_t pid;
+};
+
+static const struct vidpid klondike_vidpids[] = {
+	{ 0x04d8, 0xf60a },  // Project Klondike
+	{ 0xfa05, 0x0001 },  // HashBuster
+	{ 0, 0 }
+};
+
+static const char *klondike_manufs[] = {
+	"Klondike",
+	"HashBuster",
+	NULL,
+};
+
 #define K1 "K1"
 #define K16 "K16"
 #define K64 "K64"
@@ -858,9 +875,22 @@ static const struct bfg_set_device_definition klondike_set_device_funcs[] = {
 static
 bool klondike_lowl_match(const struct lowlevel_device_info * const info)
 {
-	if (!lowlevel_match_id(info, &lowl_usb, 0x04d8, 0xf60a))
+	if (!info->manufacturer)
 		return false;
-	return (info->manufacturer && strstr(info->manufacturer, "Klondike"));
+	for (const struct vidpid *vp = klondike_vidpids; ; ++vp)
+	{
+		if (!vp->vid)
+			return false;
+		if (lowlevel_match_id(info, &lowl_usb, vp->vid, vp->pid))
+			break;
+	}
+	for (const char **manuf = klondike_manufs; ; ++manuf)
+	{
+		if (!*manuf)
+			return false;
+		if (strstr(info->manufacturer, *manuf))
+			return true;
+	}
 }
 
 static
